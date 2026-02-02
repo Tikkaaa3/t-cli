@@ -1,0 +1,5 @@
+# --- Go Binaries ---
+# Binaries
+*.exe
+*.test
+t-cli
