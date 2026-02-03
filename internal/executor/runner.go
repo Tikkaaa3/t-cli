@@ -7,11 +7,6 @@ import (
 	"github.com/Tikkaaa3/t-cli/internal/api"
 )
 
-// TODO: Next Step: The Executor (internal/executor/runner.go)
-// Now we need to write the code that actually runs the Python etc. commands on the user's machine.
-// 3. Execute Local Code (Executor)
-// output, err := executor.Run(task.Steps)
-
 func Run(steps []api.CommandStep) (output []string, err error) {
 	var results []string
 
@@ -20,6 +15,7 @@ func Run(steps []api.CommandStep) (output []string, err error) {
 		parts := strings.Fields(commandStr)
 
 		if len(parts) == 0 {
+			results = append(results, "")
 			continue
 		}
 

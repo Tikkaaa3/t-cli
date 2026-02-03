@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,21 +16,24 @@ type CommandStep struct {
 }
 
 type Task struct {
-	UserID string        `json:"user_id"`
-	Steps  []CommandStep `json:"steps"`
+	Steps []CommandStep `json:"steps"`
 }
 
-func GetTask(taskToken string) (Task, error) {
+type SubmissionRequest struct {
+	Passed bool `json:"passed"`
+}
+
+func GetTask(token string) (Task, error) {
 	client := &http.Client{
 		Timeout: 10 * time.Second, // This kills the request if it takes longer than 10s
 	}
 
-	req, err := http.NewRequest("GET", BaseURL, nil)
+	req, err := http.NewRequest("GET", BaseURL+"/task", nil)
 	if err != nil {
 		return Task{}, err
 	}
 
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", taskToken))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	resp, err := client.Do(req)
 	if err != nil {
 		return Task{}, err
@@ -46,4 +50,38 @@ func GetTask(taskToken string) (Task, error) {
 	}
 
 	return task, nil
+}
+
+// 5. Submit Results (API)
+// api.SubmitResult(taskToken, passed)
+
+func SubmitResult(token string, passed bool) error {
+	payload := SubmissionRequest{
+		Passed: passed,
+	}
+
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", BaseURL+"/submit", bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		return fmt.Errorf("server rejected submission: status %d", resp.StatusCode)
+	}
+	return nil
 }

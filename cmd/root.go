@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Tikkaaa3/t-cli/internal/api"
+	"github.com/Tikkaaa3/t-cli/internal/executor"
+	"github.com/Tikkaaa3/t-cli/internal/grader"
 	"github.com/spf13/cobra"
 	// We will import internal packages here later
-	// "github.com/Tikkaaa3/t-cli/internal/executor"
-	// "github.com/Tikkaaa3/t-cli/internal/grader"
 	// "github.com/Tikkaaa3/t-cli/internal/ui"
 )
 
@@ -30,24 +31,31 @@ var rootCmd = &cobra.Command{
 		// 2. Fetch Task Details (API)
 		// Note: The token tells the backend WHO the user is and WHICH task this is.
 		fmt.Printf("Fetching details for token: %s...\n", taskToken)
-		// task, err := api.GetTask(taskToken)
-		// if err != nil {
-		// 	fmt.Errorf("%v", err)
-		// }
+		task, err := api.GetTask(taskToken)
+		if err != nil {
+			fmt.Printf("Error fetching task: %v\n", err)
+			os.Exit(1)
+		}
 
 		// 3. Execute Local Code (Executor)
-		// fmt.Printf("⚡ Running command: %s\n", task.Steps.Command)
-		// output, err := executor.Run(task.Steps.Command)
+		results, err := executor.Run(task.Steps)
+		if err != nil {
+			// Note: Our executor is "silent" and returns nil error usually,
+			// but we handle this just in case of catastrophic OS failure.
+			fmt.Printf("Execution failed: %v\n", err)
+			os.Exit(1)
+		}
 
 		// 4. Compare Results (Grader)
-		// passed := grader.Check(output, task.Steps.ExpectedOutput)
+		passed := grader.Check(results, task.Steps)
+		fmt.Printf("%v", passed)
 
-		// 5. Submit Results (API)
-		// api.SubmitResult(task.UserID, passed)
-
-		// Temporary output to prove it works
-		fmt.Println("\nWorkflow placeholder complete.")
-		fmt.Printf("Received Token: %s\n", taskToken)
+		err = api.SubmitResult(taskToken, passed)
+		if err != nil {
+			fmt.Printf("Failed to update server: %v\n", err)
+		} else {
+			fmt.Println("Result saved successfully!")
+		}
 	},
 }
 
