@@ -52,9 +52,6 @@ func GetTask(token string) (Task, error) {
 	return task, nil
 }
 
-// 5. Submit Results (API)
-// api.SubmitResult(taskToken, passed)
-
 func SubmitResult(token string, passed bool) error {
 	payload := SubmissionRequest{
 		Passed: passed,

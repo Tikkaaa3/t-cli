@@ -3,63 +3,90 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/Tikkaaa3/t-cli/internal/api"
 	"github.com/Tikkaaa3/t-cli/internal/executor"
 	"github.com/Tikkaaa3/t-cli/internal/grader"
+	"github.com/Tikkaaa3/t-cli/internal/ui"
+	"github.com/charmbracelet/huh/spinner"
 	"github.com/spf13/cobra"
-	// We will import internal packages here later
-	// "github.com/Tikkaaa3/t-cli/internal/ui"
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "t-cli [task_token]",
 	Short: "Educational CLI Runner",
-	Long:  `Executes your local code and verifies it against the learning platform requirements.`,
-
-	// This enforces that exactly 1 argument (the Token/ID) is passed
-	Args: cobra.ExactArgs(1),
-
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		taskToken := args[0]
+		var task api.Task
+		var err error
 
-		// 1. Start UI Spinner (Visuals)
-		fmt.Println("Connecting to platform...")
-		// ui.StartSpinner()
+		// --- Fetch Task ---
+		_ = spinner.New().
+			Title("Fetching task details...").
+			Action(func() {
+				time.Sleep(2 * time.Second)
+				task, err = api.GetTask(taskToken)
+			}).
+			Run()
 
-		// 2. Fetch Task Details (API)
-		// Note: The token tells the backend WHO the user is and WHICH task this is.
-		fmt.Printf("Fetching details for token: %s...\n", taskToken)
-		task, err := api.GetTask(taskToken)
 		if err != nil {
-			fmt.Printf("Error fetching task: %v\n", err)
+			ui.PrintFail(fmt.Sprintf("Could not fetch task: %v", err))
 			os.Exit(1)
 		}
 
-		// 3. Execute Local Code (Executor)
-		results, err := executor.Run(task.Steps)
+		fmt.Println() // Add a blank line for spacing
+		ui.PrintInfo(fmt.Sprintf("Task loaded. Executing %d step(s):", len(task.Steps)))
+
+		// --- Execute Code ---
+		// We pass a function that prints the command nicely
+		results, err := executor.Run(task.Steps, func(currentCommand string) {
+			// This prints: "  > Running: python main.py"
+			fmt.Printf("  > Running: %s ...\n", currentCommand)
+		})
+
+		// One final small pause before results
+		time.Sleep(500 * time.Millisecond)
+
 		if err != nil {
-			// Note: Our executor is "silent" and returns nil error usually,
-			// but we handle this just in case of catastrophic OS failure.
-			fmt.Printf("Execution failed: %v\n", err)
+			ui.PrintFail(fmt.Sprintf("Execution system failure: %v", err))
 			os.Exit(1)
 		}
 
-		// 4. Compare Results (Grader)
+		// --- Grade & Show Results ---
 		passed := grader.Check(results, task.Steps)
-		fmt.Printf("%v", passed)
 
-		err = api.SubmitResult(taskToken, passed)
-		if err != nil {
-			fmt.Printf("Failed to update server: %v\n", err)
+		if passed {
+			fmt.Println(ui.ResultBox.BorderForeground(ui.SuccessStyle.GetForeground()).Render(
+				ui.SuccessStyle.Render("CONGRATULATIONS!\n") +
+					"All steps executed correctly.",
+			))
 		} else {
-			fmt.Println("Result saved successfully!")
+			fmt.Println(ui.ResultBox.BorderForeground(ui.FailStyle.GetForeground()).Render(
+				ui.FailStyle.Render("TEST FAILED\n") +
+					"Your output did not match expectation.",
+			))
+		}
+
+		// --- Submit Result ---
+		fmt.Println()
+		_ = spinner.New().
+			Title("Saving progress...").
+			Action(func() {
+				time.Sleep(2 * time.Second)
+				err = api.SubmitResult(taskToken, passed)
+			}).
+			Run()
+
+		if err != nil {
+			ui.PrintFail("Could not save to server (but you passed locally!)")
+		} else {
+			ui.PrintSuccess("Progress saved.")
 		}
 	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

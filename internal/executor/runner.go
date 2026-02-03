@@ -3,15 +3,23 @@ package executor
 import (
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/Tikkaaa3/t-cli/internal/api"
 )
 
-func Run(steps []api.CommandStep) (output []string, err error) {
+func Run(steps []api.CommandStep, onStep func(string)) (output []string, err error) {
 	var results []string
 
 	for _, commandStep := range steps {
 		commandStr := commandStep.Command
+
+		time.Sleep(800 * time.Millisecond)
+
+		if onStep != nil {
+			onStep(commandStr)
+		}
+
 		parts := strings.Fields(commandStr)
 
 		if len(parts) == 0 {
