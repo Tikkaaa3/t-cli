@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+var BaseURL = "http://localhost:8080"
+
 type CommandStep struct {
 	Command        string `json:"command"`
 	ExpectedOutput string `json:"expected_output"`
@@ -18,12 +20,11 @@ type Task struct {
 }
 
 func GetTask(taskToken string) (Task, error) {
-	api := "weDontKnowYet"
 	client := &http.Client{
 		Timeout: 10 * time.Second, // This kills the request if it takes longer than 10s
 	}
 
-	req, err := http.NewRequest("GET", api, nil)
+	req, err := http.NewRequest("GET", BaseURL, nil)
 	if err != nil {
 		return Task{}, err
 	}

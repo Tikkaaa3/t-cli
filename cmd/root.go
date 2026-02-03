@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	// We will import internal packages here later
-	// "github.com/Tikkaaa3/t-cli/internal/api"
 	// "github.com/Tikkaaa3/t-cli/internal/executor"
 	// "github.com/Tikkaaa3/t-cli/internal/grader"
 	// "github.com/Tikkaaa3/t-cli/internal/ui"
@@ -32,17 +31,19 @@ var rootCmd = &cobra.Command{
 		// Note: The token tells the backend WHO the user is and WHICH task this is.
 		fmt.Printf("Fetching details for token: %s...\n", taskToken)
 		// task, err := api.GetTask(taskToken)
-		// if err != nil { handle error... }
+		// if err != nil {
+		// 	fmt.Errorf("%v", err)
+		// }
 
 		// 3. Execute Local Code (Executor)
-		// fmt.Printf("⚡ Running command: %s\n", task.Command)
-		// output, err := executor.Run(task.Command)
+		// fmt.Printf("⚡ Running command: %s\n", task.Steps.Command)
+		// output, err := executor.Run(task.Steps.Command)
 
 		// 4. Compare Results (Grader)
-		// passed := grader.Check(output, task.ExpectedOutput)
+		// passed := grader.Check(output, task.Steps.ExpectedOutput)
 
 		// 5. Submit Results (API)
-		// api.SubmitResult(taskToken, passed)
+		// api.SubmitResult(task.UserID, passed)
 
 		// Temporary output to prove it works
 		fmt.Println("\nWorkflow placeholder complete.")
