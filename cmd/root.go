@@ -14,20 +14,26 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "t-cli [task_token]",
+	Use:   "t-cli [task_id]",
 	Short: "Educational CLI Runner",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		taskToken := args[0]
+		taskID := args[0]
 		var task api.Task
 		var err error
+		// READ AUTH TOKEN
+		authToken, err := getAPIToken()
+		if err != nil {
+			ui.PrintFail(err.Error()) // "Run t-cli login first"
+			os.Exit(1)
+		}
 
 		// --- Fetch Task ---
 		_ = spinner.New().
-			Title("Fetching task details...").
+			Title(fmt.Sprintf("Fetching task '%s'...", taskID)).
 			Action(func() {
-				time.Sleep(2 * time.Second)
-				task, err = api.GetTask(taskToken)
+				// 2. Pass both ID and Token to API
+				task, err = api.GetTask(taskID, authToken)
 			}).
 			Run()
 
@@ -35,9 +41,6 @@ var rootCmd = &cobra.Command{
 			ui.PrintFail(fmt.Sprintf("Could not fetch task: %v", err))
 			os.Exit(1)
 		}
-
-		fmt.Println() // Add a blank line for spacing
-		ui.PrintInfo(fmt.Sprintf("Task loaded. Executing %d step(s):", len(task.Steps)))
 
 		// --- Execute Code ---
 		// We pass a function that prints the command nicely
@@ -69,13 +72,12 @@ var rootCmd = &cobra.Command{
 			))
 		}
 
-		// --- Submit Result ---
 		fmt.Println()
 		_ = spinner.New().
 			Title("Saving progress...").
 			Action(func() {
-				time.Sleep(2 * time.Second)
-				err = api.SubmitResult(taskToken, passed)
+				// 3. Pass ID and Token to Submit
+				err = api.SubmitResult(taskID, authToken, passed)
 			}).
 			Run()
 

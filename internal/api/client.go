@@ -20,40 +20,40 @@ type Task struct {
 }
 
 type SubmissionRequest struct {
-	Passed bool `json:"passed"`
+	TaskID string `json:"task_id"`
+	Passed bool   `json:"passed"`
 }
 
-func GetTask(token string) (Task, error) {
-	client := &http.Client{
-		Timeout: 10 * time.Second, // This kills the request if it takes longer than 10s
-	}
+func GetTask(taskID, authToken string) (Task, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
 
-	req, err := http.NewRequest("GET", BaseURL+"/task", nil)
+	url := fmt.Sprintf("%s/tasks/%s", BaseURL, taskID)
+
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return Task{}, err
 	}
 
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", authToken))
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return Task{}, err
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != 200 {
 		return Task{}, fmt.Errorf("API request failed with status: %d", resp.StatusCode)
 	}
 
 	var task Task
 	err = json.NewDecoder(resp.Body).Decode(&task)
-	if err != nil {
-		return Task{}, err
-	}
-
-	return task, nil
+	return task, err
 }
 
-func SubmitResult(token string, passed bool) error {
+func SubmitResult(taskID, authToken string, passed bool) error {
 	payload := SubmissionRequest{
+		TaskID: taskID,
 		Passed: passed,
 	}
 
@@ -62,12 +62,12 @@ func SubmitResult(token string, passed bool) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", BaseURL+"/submit", bytes.NewBuffer(jsonPayload))
+	req, err := http.NewRequest("POST", BaseURL+"/submissions", bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return err
 	}
 
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", authToken))
 	req.Header.Add("Content-Type", "application/json")
 
 	client := &http.Client{Timeout: 10 * time.Second}
