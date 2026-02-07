@@ -7,61 +7,64 @@ import (
 	"net/http"
 )
 
-// Define the "Fake Task" data
-var mockTaskResponse = `
-{
-  "id": "task-101",
-  "steps": [
-    {
-      "command": "echo Hello World",
-      "expected_output": "Hello World"
-    },
-    {
-      "command": "echo This is a test",
-      "expected_output": "This is a test"
-    }
-  ]
-}
-`
-
-type SubmissionRequest struct {
-	TaskID string `json:"task_id"`
-	Passed bool   `json:"passed"`
+// Define the response format the CLI expects
+type CLIResponse struct {
+	ID    string `json:"id"`
+	Steps []struct {
+		Command        string `json:"command"`
+		ExpectedOutput string `json:"expected_output"`
+	} `json:"steps"`
 }
 
 func main() {
 	mux := http.NewServeMux()
 
-	// --- GET /tasks/{id} ---
-	// This simulates fetching the instructions for a specific task
-	mux.HandleFunc("GET /tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
-		// Extract the ID from the URL path
-		taskID := r.PathValue("id")
-
-		// Check headers
+	// --- GET /lessons/{lesson_id}/task ---
+	mux.HandleFunc("GET /lessons/{lesson_id}/task", func(w http.ResponseWriter, r *http.Request) {
+		lessonID := r.PathValue("lesson_id")
 		token := r.Header.Get("Authorization")
 
 		fmt.Printf("\n--- CLI Request: Fetch Task ---\n")
-		fmt.Printf("Requested Task ID: %s\n", taskID)
-		fmt.Printf("Auth Token:        %s\n", token)
+		fmt.Printf("Requested Lesson ID: %s\n", lessonID)
+		fmt.Printf("Auth Token:          %s\n", token)
 
 		if token == "" {
 			fmt.Println("Warning: No Authorization header received!")
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized: Missing token"))
 			return
 		}
 
-		// Send back the instructions
+		// Mock Data: A task that requires echoing
+		response := CLIResponse{
+			ID: "task-mock-uuid-123", // The "Task ID" (different from Lesson ID)
+			Steps: []struct {
+				Command        string `json:"command"`
+				ExpectedOutput string `json:"expected_output"`
+			}{
+				{
+					Command:        "echo Hello World",
+					ExpectedOutput: "Hello World",
+				},
+				{
+					Command:        "echo Testing 123",
+					ExpectedOutput: "Testing 123",
+				},
+			},
+		}
+
 		fmt.Println("Action: Sending mock task JSON...")
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(mockTaskResponse))
+		json.NewEncoder(w).Encode(response)
 	})
 
-	// --- POST /submissions ---
-	mux.HandleFunc("POST /submissions", func(w http.ResponseWriter, r *http.Request) {
+	// --- POST /tasks/{task_id}/complete ---
+	mux.HandleFunc("POST /tasks/{task_id}/complete", func(w http.ResponseWriter, r *http.Request) {
+		taskID := r.PathValue("task_id")
 		token := r.Header.Get("Authorization")
+
+		fmt.Printf("\n--- CLI Submission: Task Complete ---\n")
+		fmt.Printf("Task ID:    %s\n", taskID) // Should match "task-mock-uuid-123"
+		fmt.Printf("Auth Token: %s\n", token)
 
 		if token == "" {
 			fmt.Println("Rejected: No token provided")
@@ -69,33 +72,13 @@ func main() {
 			return
 		}
 
-		// Parse the JSON Body
-		var req SubmissionRequest
-		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&req)
-		if err != nil {
-			fmt.Println("Error parsing JSON:", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		// Check the Status
-		fmt.Printf("\n--- CLI Submission ---\n")
-		fmt.Printf("Task ID:    %s\n", req.TaskID)
-		fmt.Printf("Auth Token: %s\n", token)
-
-		if req.Passed {
-			fmt.Println("RESULT: PASSED! Updating user progress in DB...")
-		} else {
-			fmt.Println("RESULT: FAILED. Logging attempt...")
-		}
-
+		fmt.Println("RESULT: PASSED! Marking task as complete...")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		w.Write([]byte(`{"status":"success"}`))
 	})
 
 	fmt.Println("Mock Backend running on http://localhost:8080")
-	fmt.Println("   - GET  /tasks/{id}")
-	fmt.Println("   - POST /submissions")
+	fmt.Println("   - GET  /lessons/{id}/task")
+	fmt.Println("   - POST /tasks/{id}/complete")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

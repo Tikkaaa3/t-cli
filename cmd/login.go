@@ -13,7 +13,7 @@ func runLogin(cmd *cobra.Command, args []string) {
 	token := args[0]
 
 	home, _ := os.UserHomeDir()
-	configPath := filepath.Join(home, ".t-cli") // e.g., /Users/me/.t-cli
+	configPath := filepath.Join(home, ".t-cli")
 
 	err := os.WriteFile(configPath, []byte(token), 0o600)
 	if err != nil {
