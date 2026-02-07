@@ -2,7 +2,7 @@ package executor
 
 import (
 	"os/exec"
-	"strings"
+	"runtime"
 	"time"
 
 	"github.com/Tikkaaa3/t-cli/internal/api"
@@ -14,26 +14,26 @@ func Run(steps []api.CommandStep, onStep func(string)) (output []string, err err
 	for _, commandStep := range steps {
 		commandStr := commandStep.Command
 
-		time.Sleep(800 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 
 		if onStep != nil {
 			onStep(commandStr)
 		}
 
-		parts := strings.Fields(commandStr)
-
-		if len(parts) == 0 {
-			results = append(results, "")
-			continue
+		// Detect OS and wrap command in a shell
+		var cmd *exec.Cmd
+		if runtime.GOOS == "windows" {
+			// On Windows, use "cmd /C"
+			cmd = exec.Command("cmd", "/C", commandStr)
+		} else {
+			// On Mac/Linux, use "sh -c"
+			cmd = exec.Command("sh", "-c", commandStr)
 		}
 
-		cmd := exec.Command(parts[0], parts[1:]...)
 		outputBytes, execErr := cmd.CombinedOutput()
-
 		outputStr := string(outputBytes)
 
 		// Edge Case: System Error
-		// In this case, outputBytes is empty but execErr has the info.
 		if len(outputStr) == 0 && execErr != nil {
 			outputStr = execErr.Error()
 		}
