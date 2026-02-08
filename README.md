@@ -8,7 +8,7 @@ The CLI retrieves tasks from an API, executes the required shell commands or scr
 
 ## Features
 
-- **Task Retrieval**: Fetches task details (commands and expected outputs) securely using a task token.
+- **Task Retrieval**: Fetches task details (commands and expected outputs) securely using an authenticated session.
 - **Local Execution**: Runs commands directly on the host machine, supporting real-world development workflows.
 - **Silent Error Handling**: Captures standard error output as valid feedback for grading, preventing application crashes on user syntax errors.
 - **Automated Grading**: Compares local execution output against strict expected criteria, handling whitespace normalization.
@@ -19,9 +19,11 @@ The CLI retrieves tasks from an API, executes the required shell commands or scr
 
 ### Prerequisites
 
-- **Go**: Version 1.18 or higher.
+- **Go:** Version 1.22 or higher.
+- **Git:** To clone the repository.
+- **Make:** (Optional) For automated build on Linux/Mac.
 
-### Build from Source
+### Build from Makefile
 
 1. Clone the repository:
 
@@ -30,33 +32,43 @@ The CLI retrieves tasks from an API, executes the required shell commands or scr
    cd t-cli
    ```
 
-2. Install dependencies:
+2. Build and Install:
 
    ```bash
-   go mod tidy
+    # Build the binary
+    make build
+
+    # Install it globally (requires sudo)
+    sudo make install
    ```
 
-3. Build the binary:
-
-   ```bash
-   go build -o t-cli main.go
-   ```
+   You can now run t-cli from any terminal window!
 
 ## Usage
 
-The CLI requires a **Task Token** to function. This token identifies the user and the specific task to be graded.
+The CLI requires an API Key to verify your identity. You can generate this key from the t-learn web dashboard or API.
 
-### Basic Usage
+### Login
+
+Authenticate your CLI with the platform. This saves your credentials locally.
 
 ```bash
-./t-cli <task_token>
+t-cli login <YOUR_API_KEY>
+```
+
+### Run a Lesson
+
+```bash
+t-cli <LESSON_ID>
 ```
 
 ## Development Mode (Mock Server)
 
-To test the CLI without a real backend, use the included mock server.
+To test the CLI logic without running the full backend database and API, use the included mock server. This server returns static task data for testing.
 
 ### Start the Mock Server
+
+**Note:** Ensure your main backend server is stopped, as both listen on port `8080`.
 
 Open a new terminal window and run:
 
@@ -64,13 +76,27 @@ Open a new terminal window and run:
 go run mock/main.go
 ```
 
-This will start a local server at <http://localhost:8080>.
+The server is now listening at <http://localhost:8080>.
 
-### Run the CLI: In your main terminal, run the CLI with any placeholder token
+### Configure the CLI
+
+Since the mock server checks for an Authorization header but doesn't validate it against a database, you can log in with any dummy key to create your local session.
 
 ```bash
-go run main.go TEST-TOKEN-123
+# Create a local config with a dummy key
+go run main.go login mock-api-key
 ```
+
+### Run a Mock Lesson
+
+You can now request any Lesson ID. The mock server will always return the same test task (which requires running two specific echo commands).
+
+```bash
+# Run with any placeholder ID
+go run main.go any-lesson-id
+```
+
+If successful, the CLI will ask you to run echo Hello World and echo Testing 123.
 
 ## Production Build
 
