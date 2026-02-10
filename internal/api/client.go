@@ -15,7 +15,7 @@ type CommandStep struct {
 }
 
 type Task struct {
-	ID    string        `json:"id"`
+	ID    string        `json:"task_id"`
 	Steps []CommandStep `json:"steps"`
 }
 
