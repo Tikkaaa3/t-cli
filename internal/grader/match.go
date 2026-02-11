@@ -14,7 +14,7 @@ func Check(output []string, steps []api.CommandStep) bool {
 		actual := strings.TrimSpace(output[i])
 		expected := strings.TrimSpace(step.ExpectedOutput)
 
-		// 2. Compare
+		// Compare
 		if actual != expected {
 			return false
 		}
