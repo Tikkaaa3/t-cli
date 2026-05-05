@@ -2,6 +2,12 @@
 
 **t-cli** is an educational command-line tool designed to execute, verify, and grade local code submissions against a remote learning platform. It acts as a bridge between a student's local development environment and a centralized curriculum backend.
 
+## 🎬 Demo Video
+
+👉 Click the image below to watch the demo on YouTube:
+
+[![▶ Watch Demo](https://img.youtube.com/vi/1L5MmrqYokI/maxresdefault.jpg)](https://www.youtube.com/watch?v=1L5MmrqYokI)
+
 ## Table of Contents
 
 - [Overview](#overview)
