@@ -1,5 +1,21 @@
 # t-cli
 
+<p align="center">
+
+![License](https://img.shields.io/github/license/Tikkaaa3/t-cli?style=for-the-badge)
+![Last Commit](https://img.shields.io/github/last-commit/Tikkaaa3/t-cli?style=for-the-badge)
+![Repo Size](https://img.shields.io/github/repo-size/Tikkaaa3/t-cli?style=for-the-badge)
+
+![Go](https://img.shields.io/badge/Go-1.25.5+-00ADD8?style=for-the-badge&logo=go)
+![Cobra](https://img.shields.io/badge/Cobra-CLI-3B7EBB?style=for-the-badge)
+![Charmbracelet](https://img.shields.io/badge/Charmbracelet-TUI-FF69B4?style=for-the-badge)
+![Linux](https://img.shields.io/badge/Linux-Supported-FCC624?style=for-the-badge&logo=linux)
+
+![Cross Platform](https://img.shields.io/badge/Cross--Platform-Linux%20%7C%20Windows%20%7C%20macOS-4CAF50?style=for-the-badge)
+![CLI Tool](https://img.shields.io/badge/Type-CLI%20Tool-black?style=for-the-badge)
+
+</p>
+
 **t-cli** is an educational command-line tool designed to execute, verify, and grade local code submissions against a remote learning platform. It acts as a bridge between a student's local development environment and a centralized curriculum backend.
 
 ## 🎬 Demo Video
