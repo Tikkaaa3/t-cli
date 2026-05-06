@@ -2,9 +2,9 @@
 
 <p align="center">
 
-![License](https://img.shields.io/github/license/Tikkaaa3/t-cli?style=for-the-badge)
+![License](https://img.shields.io/github/license/Tikkaaa3/t-cli?style=for-the-badge&cacheSeconds=60)
 ![Last Commit](https://img.shields.io/github/last-commit/Tikkaaa3/t-cli?style=for-the-badge)
-![Repo Size](https://img.shields.io/github/repo-size/Tikkaaa3/t-cli?style=for-the-badge)
+![Repo Size](https://img.shields.io/github/repo-size/Tikkaaa3/t-cli?style=for-the-badge&cacheSeconds=60)
 
 ![Go](https://img.shields.io/badge/Go-1.25.5+-00ADD8?style=for-the-badge&logo=go)
 ![Cobra](https://img.shields.io/badge/Cobra-CLI-3B7EBB?style=for-the-badge)
